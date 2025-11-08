@@ -1,0 +1,32 @@
+<Sysmon schemaversion="4.30">
+  <!-- Capture process creation with command line -->
+  <EventFiltering>
+    <!-- Process Create: capture all but allow us to filter later in KQL -->
+    <ProcessCreate onmatch="include">
+      <!-- include everything so we get CommandLine; refine in KQL -->
+    </ProcessCreate>
+
+    <!-- Process Access: important to detect handle access to lsass (Event ID 10) -->
+    <ProcessAccess onmatch="include">
+      <TargetImage condition="contains">lsass.exe</TargetImage>
+    </ProcessAccess>
+
+    <!-- Image loaded into processes (DLL loads) -->
+    <ImageLoad onmatch="include">
+      <ImageLoaded condition="is">*</ImageLoaded>
+    </ImageLoad>
+
+    <!-- Network connections -->
+    <NetworkConnect onmatch="include">
+      <DestinationPort>1-65535</DestinationPort>
+    </NetworkConnect>
+
+    <!-- File Create time (can help detect dumped files) -->
+    <FileCreateTime onmatch="include" />
+
+    <!-- Registry events (optional) -->
+    <RegistryEvent onmatch="exclude">
+      <TargetObject condition="is">HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</TargetObject>
+    </RegistryEvent>
+  </EventFiltering>
+</Sysmon>
